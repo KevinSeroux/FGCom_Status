@@ -1,0 +1,87 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FGCom Live status page</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="http://wenzhixin.net.cn/p/bootstrap-table/src/bootstrap-table.css">
+    <link rel="stylesheet" href="{% static "css/style.css" %}">
+  </head>
+  <body>
+    <div class="jumbotron">
+      <div class="container">
+        <h1>FGCom Live status page</h1>
+      </div>
+    </div>
+
+    <div class="container">
+      <!--<div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        <span class="sr-only">Error:</span>Maintenance in progress
+      </div>-->
+
+      <!--<div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        <span class="sr-only">Warning:</span>This web page is currently in development
+      </div>-->
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+	  <h2 class="panel-title">Currents users</h2>
+	</div>
+        <table id="users" data-toggle="table" data-url="{% url 'users' %}" data-sort-name="airport" data-sort-order="asc">
+          <thead>
+            <tr>
+              <th data-field="airport" data-align="left" data-sortable="true">Airport</th>
+              <th data-field="frequency" data-align="left" data-sortable="true">Frequency (MHz)</th>
+              <th data-field="callsign" data-align="left" data-sortable="true">Callsign</th>
+              <th data-field="version" data-align="left" data-sortable="true">Client version</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title">ATIS recordings</h2>
+	</div>
+        <table id="atis" data-toggle="table" data-url="{% url 'atis' %}" data-sort-name="airport" data-sort-order="asc">
+          <thead>
+            <tr>
+              <th data-field="airport" data-align="left" data-sortable="true">Airport</th>
+              <th data-field="frequency" data-align="left" data-sortable="true">Frequency (MHz)</th>
+              <th data-field="date" data-align="left" data-sortable="true">Last report (UTC)</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+    </div> <!-- container -->
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">
+          Copyright © 2015, FGCom status page is licensed under the GPL license. Coded by <a href="mailto:kevin.seroux@gmail.com">F-G0Z</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="http://wenzhixin.net.cn/p/bootstrap-table/src/bootstrap-table.js"></script>
+    <script>
+      window.setInterval(function() {
+        $('#users').bootstrapTable('refresh');
+      }, 5000);  // Refresh every 5 secs
+
+      window.setInterval(function() {
+        $('#atis').bootstrapTable('refresh');
+      }, 60000);  // Refresh every minutes
+    </script>
+  </body>
+</html>

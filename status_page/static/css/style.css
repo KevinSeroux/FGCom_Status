@@ -1,0 +1,33 @@
+.jumbotron .container {
+	background-image: url("../img/FGCom_logo.png");
+	background-position: left;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	text-indent: 100px;
+}
+
+.container .text-muted {
+	margin: 20px 0;
+	text-align: center;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
