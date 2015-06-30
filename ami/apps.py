@@ -53,10 +53,14 @@ class AMIListener(Process):
                             data = self.getMessage()
                             if b'Event' in data:
                                 if data[b'Event'] == b'Newchannel':
-                                    self.newChannel(data)
+                                    # To register just one time the user
+                                    if data[b'Channel'][:5] == b'IAX2/':
+                                        self.newChannel(data)
 
                                 elif data[b'Event'] == b'Hangup':
-                                    self.hangup(data)
+                                    # To register just one time the user
+                                    if data[b'Channel'][:5] == b'IAX2/':
+                                        self.hangup(data)
 
                     else:  # Bad username/password
                         raise AccessDenied()
