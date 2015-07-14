@@ -9,10 +9,32 @@ INSTALLATION
     pip install -r requirements.txt
     ```
 
-
 EXECUTION
 =========
 
-For development, use ``./manage.py runserver --noreload`` otherwise, the AMI Listener will be executed twice.
+Development
+-----------
 
-For production, see: https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
+To launch the AMI Listener:
+    ```./ami.py```
+    
+To launch the web application:
+    ```./manage.py runserver```
+
+Production
+----------
+
+1. See how to deploy django : https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
+
+2. Install supervisor and create a file in /etc/supervisor/conf.d/fgcom_ami_listener.conf containing:
+   ```
+	    [program:fgcom_ami_listener]
+            command=/var/www/fgcom/ami.py  # To modify
+            environment=PATH="/home/user/Envs/fgcom/bin"  # To modify
+            autostart=true
+            autorestart=true
+            stderr_logfile=/var/log/fgcom_ami_listener.err.log
+            stdout_logfile=/var/log/fgcom_ami_listener.out.log
+    ```
+
+3. Restart supervisor and check that ami.py is launched.

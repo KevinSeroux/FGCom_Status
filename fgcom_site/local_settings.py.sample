@@ -25,6 +25,7 @@ AMI_PORT = 5038
 AMI_USER = b'username'
 AMI_PASSWORD = b'password'
 AMI_TIME_BEFORE_RETRY = 60  # 60 seconds
+AMI_BUFFER_SIZE = 1024
 
 
 # Database
