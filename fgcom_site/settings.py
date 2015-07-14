@@ -31,7 +31,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'status_page',
-    'ami',
 )
 
 MIDDLEWARE_CLASSES = (
