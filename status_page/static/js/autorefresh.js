@@ -1,5 +1,10 @@
 $(document).ready(function() {
     updateMap();
+
+    $('#users').bootstrapTable().on('click-row.bs.table',
+      function (e, row, $element) {
+        center(row.longitude, row.latitude);
+    });
 });
 
 window.setInterval(function() {

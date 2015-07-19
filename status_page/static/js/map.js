@@ -13,8 +13,7 @@ var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
 map.addLayer(vectorLayer);
 
 // Center on North Atlantic Ocean -45, 33
-lonLat = new OpenLayers.LonLat(-45, 33).transform(epsg4326, projectTo);
-map.setCenter([lonLat.lon, lonLat.lat], map.getMinZoom());
+center(-45, 33, map.getMinZoom());
 
 function placeMarker(lat, lon) {
   var lonLat = new OpenLayers.LonLat(lon, lat).transform(epsg4326, projectTo);
@@ -41,6 +40,12 @@ function updateMap() {
       placeMarker(jsonData[i].latitude, jsonData[i].longitude);
     }
   }
+}
 
-  console.log('Centrage')
+function center(lon, lat, zoom) {
+  if(zoom === undefined)
+    zoom = 6;
+
+  lonLat = new OpenLayers.LonLat(lon, lat).transform(epsg4326, projectTo);
+  map.setCenter([lonLat.lon, lonLat.lat], zoom);
 }
