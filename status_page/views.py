@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
-from status_page.models import ActiveUser
+from status_page.models import ActiveUser, Point
 from status_page.utility import phoneNumberToAirport, phoneNumberToFrequency
 import json
 import os
@@ -15,9 +15,20 @@ def index(request):
 
 
 def users(request):
-    data = json.dumps([
+    myList = [
         dict(item) for item in ActiveUser.objects.all().values(
-            'point', 'frequency', 'callsign', 'version')])
+            'point', 'frequency', 'callsign', 'version')]
+
+    for user in myList:
+        try:
+            point = Point.objects.get(pk=user['point'])
+            user['latitude'] = point.latitude
+            user['longitude'] = point.longitude
+
+        except Point.DoesNotExist:
+            pass
+
+    data = json.dumps(myList)
 
     return HttpResponse(data, content_type="application/json")
 

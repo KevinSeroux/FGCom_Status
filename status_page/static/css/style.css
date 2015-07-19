@@ -11,6 +11,11 @@
 	text-align: center;
 }
 
+#map {
+  width: 100%;
+  height: 480px;
+}
+
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
