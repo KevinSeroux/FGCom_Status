@@ -10,12 +10,10 @@ INSTALLATION
     ```
 
 3. Setup the database:
-    ```./manage.py migrate
-    ```
+    ```./manage.py migrate```
 
 4. Fill the database with airports, frequencies
-    ```./manage.py populate
-    ```
+    ```./manage.py populate```
 
 EXECUTION
 =========
