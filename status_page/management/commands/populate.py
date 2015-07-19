@@ -121,10 +121,21 @@ class Command(BaseCommand):
 
     def saveFrequency(self, icao_code, frequency, description):
         instance = Point.objects.get(pk=icao_code)
-        frequency = Frequency(point=instance,
-                              frequency=frequency,
-                              description=description)
-        frequency.save()
+
+        # Same frequency for same airport can happen
+        sameFreqsPoints = Frequency.objects.filter(point=instance,
+                                                   frequency=frequency)
+        if sameFreqsPoints:
+            # In this case, concatenate descriptions
+            sameFreqPoint = sameFreqsPoints.first()
+            sameFreqsPoints.update(description=sameFreqPoint.description +
+                                   ' / ' + description)
+
+        else:
+            frequency = Frequency(point=instance,
+                                  frequency=frequency,
+                                  description=description)
+            frequency.save()
 
     def getCountLines(self, file):
         countLines = 0
