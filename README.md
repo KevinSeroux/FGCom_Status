@@ -9,6 +9,14 @@ INSTALLATION
     pip install -r requirements.txt
     ```
 
+3. Setup the database:
+    ```./manage.py migrate
+    ```
+
+4. Fill the database with airports, frequencies
+    ```./manage.py populate
+    ```
+
 EXECUTION
 =========
 
