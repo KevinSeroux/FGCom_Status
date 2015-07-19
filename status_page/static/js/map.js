@@ -12,8 +12,9 @@ projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
 var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
 map.addLayer(vectorLayer);
 
-var defaultZoom = 2;
-map.setCenter(0, 0, defaultZoom);
+// Center on North Atlantic Ocean -45, 33
+lonLat = new OpenLayers.LonLat(-45, 33).transform(epsg4326, projectTo);
+map.setCenter([lonLat.lon, lonLat.lat], map.getMinZoom());
 
 function placeMarker(lat, lon) {
   var lonLat = new OpenLayers.LonLat(lon, lat).transform(epsg4326, projectTo);
@@ -21,23 +22,25 @@ function placeMarker(lat, lon) {
   var mycircle = OpenLayers.Geometry.Polygon.createRegularPolygon
   (
     point,
-    321868.8, // Radius in meters (200 miles)
-    40    // Number of sides
+    321868.8,  // Radius in meters (200 miles)
+    40         // Number of sides
   );
   var marker = new OpenLayers.Feature.Vector(mycircle);
   vectorLayer.addFeatures(marker);
 }
 
 function updateMap() {
-    jsonData = $('#users').bootstrapTable('getData');
+  jsonData = $('#users').bootstrapTable('getData');
 
-    vectorLayer.removeAllFeatures();
-    for(var i = 0; i < jsonData.length; i++) {
-      lat = jsonData[i].latitude;
-      lon = jsonData[i].longitude;
+  vectorLayer.removeAllFeatures();
+  for(var i = 0; i < jsonData.length; i++) {
+    lat = jsonData[i].latitude;
+    lon = jsonData[i].longitude;
 
-      if(lat !== undefined && lon !== undefined) {
-        placeMarker(jsonData[i].latitude, jsonData[i].longitude);
-      }
+    if(lat !== undefined && lon !== undefined) {
+      placeMarker(jsonData[i].latitude, jsonData[i].longitude);
     }
+  }
+
+  console.log('Centrage')
 }
