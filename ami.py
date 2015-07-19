@@ -55,11 +55,11 @@ def newChannel(event):
     print()
 
     frequency = phoneNumberToFrequency(event[b'Exten'])
-    airport = phoneNumberToAirport(event[b'Exten'])
+    point = phoneNumberToAirport(event[b'Exten'])
     pk = float(event[b'Uniqueid'])
 
     ActiveUser.objects.create(pk=pk,
-                              airport=airport,
+                              point=point,
                               frequency=frequency,
                               callsign=event[b'CallerIDName'],
                               version=event[b'CallerIDNum'])
