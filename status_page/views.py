@@ -17,7 +17,7 @@ def index(request):
 def users(request):
     data = json.dumps([
         dict(item) for item in ActiveUser.objects.all().values(
-            'airport', 'frequency', 'callsign', 'version')])
+            'point', 'frequency', 'callsign', 'version')])
 
     return HttpResponse(data, content_type="application/json")
 
