@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
-from status_page.models import ActiveUser, Point
+from status_page.models import ActiveUser, Point, Frequency
 from status_page.utility import phoneNumberToAirport, phoneNumberToFrequency
 import json
 import os
@@ -25,7 +25,11 @@ def users(request):
             user['latitude'] = point.latitude
             user['longitude'] = point.longitude
 
-        except Point.DoesNotExist:
+            frequency = Frequency.objects.get(point=point,
+                                              frequency=user['frequency'])
+            user['description'] = frequency.description
+
+        except (Point.DoesNotExist, Frequency.DoesNotExist):
             pass
 
     data = json.dumps(myList)

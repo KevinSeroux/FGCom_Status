@@ -1,3 +1,7 @@
+$(document).ready(function() {
+    updateMap();
+});
+
 window.setInterval(function() {
     $('#users').bootstrapTable('refresh');
     updateMap();
@@ -7,6 +11,12 @@ window.setInterval(function() {
     $('#atis').bootstrapTable('refresh');
 }, 60000);  // Refresh every minutes
 
-$(document).ready(function() {
-    updateMap();
-});
+function rowStyle(row, index) {
+    classes = {};
+
+    if(row.description == undefined) {
+        classes['classes'] = 'warning';
+    }
+
+    return classes;
+}
