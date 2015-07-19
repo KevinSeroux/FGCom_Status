@@ -34,12 +34,12 @@
         <div class="panel-heading">
           <h2 class="panel-title">Currents users</h2>
         </div>
-        <table id="users" data-toggle="table" data-url="{% url 'users' %}" data-sort-name="airport" data-sort-order="asc">
+        <table id="users" data-toggle="table" data-url="{% url 'users' %}" data-sort-name="point" data-sort-order="asc">
           <thead>
             <tr>
-              <th data-field="airport" data-align="left" data-sortable="true">Airport</th>
-              <th data-field="frequency" data-align="left" data-sortable="true">Frequency (MHz)</th>
               <th data-field="callsign" data-align="left" data-sortable="true">Callsign</th>
+              <th data-field="point" data-align="left" data-sortable="true">Airport</th>
+              <th data-field="frequency" data-align="left" data-sortable="true">Frequency (MHz)</th>
               <th data-field="version" data-align="left" data-sortable="true">Client version</th>
             </tr>
           </thead>
