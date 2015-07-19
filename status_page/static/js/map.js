@@ -43,9 +43,11 @@ function updateMap() {
 }
 
 function center(lon, lat, zoom) {
-  if(zoom === undefined)
-    zoom = 6;
+  if(lon !== undefined && lat !== undefined) {
+    if(zoom === undefined)
+      zoom = 6;
 
-  lonLat = new OpenLayers.LonLat(lon, lat).transform(epsg4326, projectTo);
-  map.setCenter([lonLat.lon, lonLat.lat], zoom);
+    lonLat = new OpenLayers.LonLat(lon, lat).transform(epsg4326, projectTo);
+    map.setCenter([lonLat.lon, lonLat.lat], zoom);
+  }
 }
