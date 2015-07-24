@@ -39,8 +39,8 @@
           <thead>
             <tr>
               <th data-field="callsign" data-align="left" data-sortable="true">Callsign</th>
-              <th data-field="point" data-align="left" data-sortable="true">Airport</th>
-              <th data-field="frequency" data-align="left" data-sortable="true">Frequency (MHz)</th>
+              <th data-field="point" data-align="left" data-sortable="true">Point</th>
+              <th data-field="frequency" data-align="left" data-sortable="true">Frequency</th>
               <th data-field="description" data-align="left" data-sortable="true">Description</th>
               <th data-field="version" data-align="left" data-sortable="true">Client version</th>
             </tr>
@@ -52,7 +52,7 @@
         <div class="panel-heading">
           <h2 class="panel-title">ATIS recordings</h2>
         </div>
-        <table id="atis" data-toggle="table" data-url="{% url 'atis' %}" data-sort-name="airport" data-sort-order="asc">
+        <table id="auto_info" data-toggle="table" data-url="{% url 'auto_info' %}" data-sort-name="airport" data-sort-order="asc">
           <thead>
             <tr>
               <th data-field="airport" data-align="left" data-sortable="true">Airport</th>

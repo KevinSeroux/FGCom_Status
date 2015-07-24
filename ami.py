@@ -5,9 +5,10 @@ import sys
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fgcom_site.settings")
 
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.conf import settings
-from status_page.utility import phoneNumberToAirport, phoneNumberToFrequency
-from status_page.models import ActiveUser
+from status_page.utility import extensionToPointName, extensionToFrequency
+from status_page.models import ActiveUser, Frequency, Point
 
 import socket
 import re
@@ -15,120 +16,197 @@ import time
 import django
 
 
-class BadServerResponse(Exception):
-    pass
+class AMIClient():
+
+    def __init__(self, ip, port, username, password, buffer_size=1024):
+        self.ip = ip
+        self.port = port
+        self.username = username
+        self.password = password
+        self.buffer_size = buffer_size
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def connect(self):
+        self.socket.connect((self.ip, self.port))
+
+        connectQuery = ("Action: Login\r\n" +
+                        "Username: " + self.username + "\r\n"
+                        "Secret: " + self.password + "\r\n"
+                        "\r\n")
+        self.send(connectQuery)
+        response = self.receive()
+
+        if response['Response'] != 'Success':
+            raise AMIClient.AccessDenied()
+
+    def send(self, message):
+        # Encode
+        message = str.encode(message)
+        self.socket.send(message)
+
+    def receive(self):
+        while True:
+            # '\r\n\r\n' separate each messages
+            index = AMIClient.data.find('\r\n\r\n')
+
+            if index == -1:
+                AMIClient.data += self.socket.recv(self.buffer_size).decode()
+
+            else:  # If the end of the message has been found
+                # We keep one '\r\n' for the parser
+                trame = AMIClient.data[:index + 2]
+                trameDict = dict(re.findall("(?P<name>.*?): (?P<value>.*?)\r"
+                                            "\n", trame))
+
+                # We remove the processed message
+                AMIClient.data = AMIClient.data[index + 4:]
+                return trameDict
+
+    class AccessDenied(Exception):
+        pass
+
+    # Static variables
+    data = ''
 
 
-class AccessDenied(Exception):
-    pass
-
-
-rawdata = b''
-
-
-def getMessage():
-    # The purpose of this static variable is to keep datas between each
-    # executions of this method
-    global rawdata
-
-    while True:
-        # '\r\n\r\n' separate each messages
-        index = rawdata.find(b'\r\n\r\n')
-
-        if index == -1:
-            rawdata += s.recv(settings.AMI_BUFFER_SIZE)
-
-        else:  # If the end of the message has been found
-            # We keep one '\r\n' for the parser
-            trame = rawdata[:index + 2]
-            trameDict = dict(re.findall(b"(?P<name>.*?): (?P<value>.*?)\r"
-                                        b"\n", trame))
-
-            # We remove the processed message
-            rawdata = rawdata[index + 4:]
-            return trameDict
-
-
-def newChannel(event):
+def newChannel(event, client, listOfOriginatedChannels):
+    print()
     print('New channel')
     print(event)
-    print()
 
-    frequency = phoneNumberToFrequency(event[b'Exten'])
-    point = phoneNumberToAirport(event[b'Exten'])
-    pk = float(event[b'Uniqueid'])
+    exten = event['Exten']
+    frequency = extensionToFrequency(exten)
+    point = extensionToPointName(exten)
+    pk = float(event['Uniqueid'])
 
     ActiveUser.objects.create(pk=pk,
                               point=point,
                               frequency=frequency,
-                              callsign=event[b'CallerIDName'],
-                              version=event[b'CallerIDNum'])
+                              callsign=event['CallerIDName'],
+                              version=event['CallerIDNum'])
+
+    # CHANNEL MANAGEMENT
+
+    # If there is already a playback (morse, atis) channel for the extension,
+    # there is nothing more to do
+    for channel in listOfOriginatedChannels:
+        if channel.count(exten) > 0:
+            return
+
+    try:
+        # If the point and the frequency are known
+        frequency = Frequency.objects.get(point__name=point,
+                                          frequency=frequency)
+    except (ObjectDoesNotExist, MultipleObjectsReturned):
+            pass
+
+    else:
+        if frequency.auto_info:
+            query = ("Action: Originate\r\n"
+                     "Channel: Local/" + exten + "\r\n"
+                     "Context: macro-autoinfo\r\n"
+                     "Exten: s\r\n"
+                     "Priority: 1\r\n"
+                     "Variable: MACRO_EXTEN=" + exten + "\r\n"
+                     "\r\n")
+            client.send(query)
+
+        elif frequency.nav:
+            query = ("Action: Originate\r\n"
+                     "Channel: Local/" + exten + "\r\n"
+                     "Context: macro-morse\r\n"
+                     "Exten: s\r\n"
+                     "Priority: 1\r\n"
+                     "Variable: CODE=" + point + "\r\n"
+                     "\r\n")
+            client.send(query)
 
 
-def hangup(event):
+def hangup(event, client, listOfOriginatedChannels):
+    print()
     print('Hangup')
     print(event)
-    print()
 
-    pk = float(event[b'Uniqueid'])
+    pk = float(event['Uniqueid'])
     ActiveUser.objects.filter(pk=pk).delete()
+
+    # CHANNEL MANAGEMENT
+    exten = event['Exten']
+    frequency = extensionToFrequency(exten)
+    point = extensionToPointName(exten)
+
+    try:
+        frequency = Frequency.objects.get(point__name=point,
+                                          frequency=frequency)
+
+    except (ObjectDoesNotExist, MultipleObjectsReturned):
+        pass
+
+    else:
+        # We must hangup the channel only when it's an auto-info or nav freq
+        if frequency.auto_info or frequency.nav:
+            # And only when there is no more user on the frequency
+            if not ActiveUser.objects.filter(point=point,
+                                             frequency=frequency.frequency
+                                             ).exists():
+                i = 0
+                while i < len(listOfOriginatedChannels):
+                    if listOfOriginatedChannels[i].count(exten) > 0:
+                        query = ("Action: Hangup\r\n"
+                                 "Channel: " + listOfOriginatedChannels[i] +
+                                 "\r\n\r\n")
+                        client.send(query)
+                        del listOfOriginatedChannels[i]
+                    else:
+                        i += 1
 
 
 if __name__ == "__main__":
-    print('AMI Listener: started')
+    ami = AMIClient(settings.AMI_IP, settings.AMI_PORT, settings.AMI_USER,
+                    settings.AMI_PASSWORD, settings.AMI_BUFFER_SIZE)
+    print('AMI: started')
 
     # We wait until django is set up to use the models
+    print('AMI: Waiting for the models... ', end="")
     django.setup()
+    print('Ready')
 
     # It is better to remove everything at start up to prevent residual users
+    print('AMI: Flushing the table... ', end="")
     ActiveUser.objects.all().delete()
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print('Done')
+
+    listOfOriginatedChannels = []
 
     while True:
         try:
-            s.connect((settings.AMI_IP, settings.AMI_PORT))
-            server_version = s.recv(settings.AMI_BUFFER_SIZE)
-            if server_version[-2:] == b'\r\n':
-                query = b"Action: Login\r\n"
-                query += b"Username: " + settings.AMI_USER + b"\r\n"
-                query += b"Secret: " + settings.AMI_PASSWORD + b"\r\n"
-                query += b"\r\n"
-                s.send(query)
+            print('AMI: Connecting... ', end="")
+            ami.connect()
+            print('Connected')
+            print('AMI: READY!')
 
-                response = getMessage()
-                if response[b'Response'] == b'Success':
-                    while True:
-                        data = getMessage()
-                        if b'Event' in data:
-                            if data[b'Event'] == b'Newchannel':
-                                # To register just one time the user
-                                if data[b'Channel'][:5] == b'IAX2/':
-                                    newChannel(data)
+            while True:
+                data = ami.receive()
+                if 'Event' in data:
+                    if data['Event'] == 'Newchannel':
+                        if data['Channel'][:5] == 'IAX2/':
+                            newChannel(data, ami, listOfOriginatedChannels)
+                        elif data['Channel'][:6] == 'Local/':
+                            # CHECK
+                            listOfOriginatedChannels.append(data['Channel'])
 
-                            elif data[b'Event'] == b'Hangup':
-                                # To register just one time the user
-                                if data[b'Channel'][:5] == b'IAX2/':
-                                    hangup(data)
-
-                else:  # Bad username/password
-                    raise AccessDenied()
-
-            else:  # Server not reachable
-                raise BadServerResponse()
+                    elif data['Event'] == 'Hangup':
+                        if data['Channel'][:5] == 'IAX2/':
+                            hangup(data, ami, listOfOriginatedChannels)
 
         except ConnectionRefusedError:
-            print('AMIListener: Server unreachable. Retrying in ' +
+            print('AMI: Server unreachable. Retrying in ' +
                   str(settings.AMI_TIME_BEFORE_RETRY) + 's...')
             time.sleep(settings.AMI_TIME_BEFORE_RETRY)
             continue
 
-        except BadServerResponse:
-            print('AMIListener: Server has not answered as expected!')
-            break
-
-        except AccessDenied:
-            print('AMIListener: Access denied. Check username and '
-                  'password !')
+        except AMIClient.AccessDenied:
+            print('AMI: Access denied. Check username and password !')
             break
 
     print('AMIListener: exiting')

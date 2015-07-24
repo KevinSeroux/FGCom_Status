@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from status_page.models import ActiveUser, Point, Frequency
-from status_page.utility import phoneNumberToAirport, phoneNumberToFrequency
+from status_page.utility import extensionToPointName, extensionToFrequency
 import json
 import os
 import glob
@@ -21,31 +21,35 @@ def users(request):
 
     for user in myList:
         try:
-            point = Point.objects.get(pk=user['point'])
-            user['latitude'] = point.latitude
-            user['longitude'] = point.longitude
-
-            frequency = Frequency.objects.get(point=point,
+            frequency = Frequency.objects.get(point__name=user['point'],
                                               frequency=user['frequency'])
+            user['latitude'] = frequency.point.latitude
+            user['longitude'] = frequency.point.longitude
             user['description'] = frequency.description
 
-        except (Point.DoesNotExist, Frequency.DoesNotExist):
+        except Frequency.DoesNotExist:
             pass
+
+        else:
+            if user['frequency'] % 1000 > 0:
+                user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
+            else:
+                user['frequency'] = str(user['frequency']) + ' KHz'
 
     data = json.dumps(myList)
 
     return HttpResponse(data, content_type="application/json")
 
 
-def atis(request):
+def auto_info(request):
     myList = []
 
     os.chdir(settings.ATIS_DIR)
     for file in glob.glob("*.gsm"):
-        phoneNumber = file[:-4]  # To remove .gsm extension
+        exten = file[:-4]  # To remove .gsm extension
 
-        airport = phoneNumberToAirport(phoneNumber)
-        frequency = phoneNumberToFrequency(phoneNumber)
+        airport = extensionToPointName(exten)
+        frequency = extensionToFrequency(exten) / 1000
         timestamp = os.path.getmtime(settings.ATIS_DIR + '/' + file)
         universal_time = datetime.datetime.utcfromtimestamp(timestamp)
 
