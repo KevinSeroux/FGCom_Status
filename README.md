@@ -12,8 +12,13 @@ INSTALLATION
 3. Setup the database:
     ```./manage.py migrate```
 
-4. Fill the database with airports, frequencies
+4. Fill the database with points and frequencies (Airports, NDB, VOR, LOC, GS and DME)
     ```./manage.py populate```
+
+5. Replace dialplan:
+    ```./manage.py dialplan > /tmp/fgcom.conf
+       sudo mv /tmp/fgcom.conf /etc/asterisk/
+    ```
 
 EXECUTION
 =========
