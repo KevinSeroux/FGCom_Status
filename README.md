@@ -16,8 +16,9 @@ INSTALLATION
     ```./manage.py populate```
 
 5. Replace dialplan:
-    ```./manage.py dialplan > /tmp/fgcom.conf
-       sudo mv /tmp/fgcom.conf /etc/asterisk/
+    ```bash
+    ./manage.py dialplan > /tmp/fgcom.conf
+    sudo mv /tmp/fgcom.conf /etc/asterisk/
     ```
 
 EXECUTION
@@ -39,13 +40,13 @@ Production
 
 2. Install supervisor and create a file in /etc/supervisor/conf.d/fgcom_ami_listener.conf containing:
    ```
-	    [program:fgcom_ami_listener]
-            command=/var/www/fgcom/ami.py  # To modify
-            environment=PATH="/home/user/Envs/fgcom/bin"  # To modify
-            autostart=true
-            autorestart=true
-            stderr_logfile=/var/log/fgcom_ami_listener.err.log
-            stdout_logfile=/var/log/fgcom_ami_listener.out.log
+        [program:fgcom_ami_listener]
+        command=/var/www/fgcom/ami.py  # To modify
+        environment=PATH="/home/user/Envs/fgcom/bin"  # To modify
+        autostart=true
+        autorestart=true
+        stderr_logfile=/var/log/fgcom_ami_listener.err.log
+        stdout_logfile=/var/log/fgcom_ami_listener.out.log
     ```
 
 3. Restart supervisor and check that ami.py is launched.
