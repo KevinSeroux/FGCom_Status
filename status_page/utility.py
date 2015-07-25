@@ -34,5 +34,5 @@ def computeExtension(isRecordingFrequency, point, frequency):
 
     exten += "%d%d%d%d" % (ord(point[0]), ord(point[1]),
                            ord(point[2]), ord(point[3]))
-    exten += str(int(frequency))
+    exten += str(int(frequency)).zfill(6)
     return exten

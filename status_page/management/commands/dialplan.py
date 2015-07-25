@@ -65,8 +65,11 @@ class Command(BaseCommand):
             "exten => 0190909090910000,n,Echo()\n"
             "exten => 0190909090910000,n,Hangup()\n"
             "\n"
-            "; Every frequencies are allowed\n"
-            "exten => _0XXXXXXXXXXXXXXX,1,Macro(com)\n"
+            "; All the frequencies\n"
+            "exten => _01XXXXXXXXZXXXXZ,1,Dial(Local/${EXTEN:0:15}0)\n"
+            "exten => _01XXXXXXXXXXXXXX,1,Macro(com)\n"
+            "\n"
+            "exten => _99XXXXXXXXZXXXXZ,1,Dial(Local/${EXTEN:0:15}0)\n"
             "\n")
 
         frequencies = Frequency.objects.filter(auto_info=True)

@@ -72,10 +72,10 @@ class AMIClient():
 
 def newChannel(event, client, listOfOriginatedChannels):
     print()
-    print('New channel')
+    print('CONNECT')
     print(event)
 
-    exten = event['Exten']
+    exten = event['Conference']
     frequency = extensionToFrequency(exten)
     point = extensionToPointName(exten)
     pk = float(event['Uniqueid'])
@@ -109,6 +109,7 @@ def newChannel(event, client, listOfOriginatedChannels):
                      "Exten: s\r\n"
                      "Priority: 1\r\n"
                      "Variable: MACRO_EXTEN=" + exten + "\r\n"
+                     "Async: true\r\n"
                      "\r\n")
             client.send(query)
 
@@ -119,13 +120,14 @@ def newChannel(event, client, listOfOriginatedChannels):
                      "Exten: s\r\n"
                      "Priority: 1\r\n"
                      "Variable: CODE=" + point + "\r\n"
+                     "Async: true\r\n"
                      "\r\n")
             client.send(query)
 
 
 def hangup(event, client, listOfOriginatedChannels):
     print()
-    print('Hangup')
+    print('DISCONNECT')
     print(event)
 
     pk = float(event['Uniqueid'])
@@ -137,6 +139,8 @@ def hangup(event, client, listOfOriginatedChannels):
     exten = computeExtension(False, point, frequency)
 
     user.delete()
+
+    print(exten)
 
     try:
         frequency = Frequency.objects.get(point__name=point,
@@ -191,15 +195,17 @@ if __name__ == "__main__":
             while True:
                 data = ami.receive()
                 if 'Event' in data:
-                    if data['Event'] == 'Newchannel':
-                        if data['Channel'][:5] == 'IAX2/':
+                    if data['Event'] == 'ConfbridgeJoin':
+                        if data['ConnectedLineNum'] != '<unknown>' or \
+                           data['Channel'][0:5] == 'IAX2/':  # User
                             newChannel(data, ami, listOfOriginatedChannels)
-                        elif data['Channel'][:6] == 'Local/':
-                            # CHECK
-                            listOfOriginatedChannels.append(data['Channel'])
 
-                    elif data['Event'] == 'Hangup':
-                        if data['Channel'][:5] == 'IAX2/':
+                    elif data['Event'] == 'OriginateResponse':  # Playback
+                        listOfOriginatedChannels.append(data['Channel'])
+
+                    elif data['Event'] == 'ConfbridgeLeave':
+                        if data['ConnectedLineNum'] != '<unknown>' or \
+                           data['Channel'][0:5] == 'IAX2/':  # User
                             hangup(data, ami, listOfOriginatedChannels)
 
         except ConnectionRefusedError:
