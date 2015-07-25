@@ -7,7 +7,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fgcom_site.settings")
 
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.conf import settings
-from status_page.utility import extensionToPointName, extensionToFrequency
+from status_page.utility import (extensionToPointName, extensionToFrequency,
+                                 computeExtension)
 from status_page.models import ActiveUser, Frequency, Point
 
 import socket
@@ -128,12 +129,14 @@ def hangup(event, client, listOfOriginatedChannels):
     print(event)
 
     pk = float(event['Uniqueid'])
-    ActiveUser.objects.filter(pk=pk).delete()
+    user = ActiveUser.objects.get(pk=pk)
 
     # CHANNEL MANAGEMENT
-    exten = event['Exten']
-    frequency = extensionToFrequency(exten)
-    point = extensionToPointName(exten)
+    frequency = user.frequency
+    point = user.point
+    exten = computeExtension(False, point, frequency)
+
+    user.delete()
 
     try:
         frequency = Frequency.objects.get(point__name=point,
