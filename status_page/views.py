@@ -31,7 +31,7 @@ def users(request):
             pass
 
         else:
-            if user['frequency'] / 1000 > 0:
+            if user['frequency'] / 1000 >= 1:
                 user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
             else:
                 user['frequency'] = str(user['frequency']) + ' KHz'
