@@ -19,8 +19,8 @@ window.setInterval(function() {
 function rowStyle(row, index) {
     classes = {};
 
-    if(row.description == undefined) {
-        classes['classes'] = 'warning';
+    if(row.latitude === undefined && row.longitude === undefined) {
+        classes.classes = 'warning';
     }
 
     return classes;

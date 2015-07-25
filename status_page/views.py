@@ -20,21 +20,26 @@ def users(request):
             'point', 'frequency', 'callsign', 'version')]
 
     for user in myList:
-        try:
-            frequency = Frequency.objects.get(point__name=user['point'],
-                                              frequency=user['frequency'])
-            user['latitude'] = frequency.point.latitude
-            user['longitude'] = frequency.point.longitude
-            user['description'] = frequency.description
-
-        except Frequency.DoesNotExist:
-            pass
-
+        if user['point'] == 'ZZZZ' and user['frequency'] == 910000:
+            del user['point']
+            user['frequency'] = '910 MHz'
+            user['description'] = 'ECHO-TEST'
         else:
-            if user['frequency'] / 1000 >= 1:
-                user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
+            try:
+                frequency = Frequency.objects.get(point__name=user['point'],
+                                                  frequency=user['frequency'])
+                user['latitude'] = frequency.point.latitude
+                user['longitude'] = frequency.point.longitude
+                user['description'] = frequency.description
+
+            except Frequency.DoesNotExist:
+                pass
+
             else:
-                user['frequency'] = str(user['frequency']) + ' KHz'
+                if user['frequency'] / 1000 >= 1:
+                    user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
+                else:
+                    user['frequency'] = str(user['frequency']) + ' KHz'
 
     data = json.dumps(myList)
 
