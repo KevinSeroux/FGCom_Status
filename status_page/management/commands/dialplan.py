@@ -62,7 +62,6 @@ class Command(BaseCommand):
             "exten => 0190909090910000,1,SendText(Echo Box - For testing FGCO"
             "M)\n"
             "exten => 0190909090910000,n,Answer()\n"
-            "exten => 0190909090910000,n,NoCDR\n"
             "exten => 0190909090910000,n,Echo()\n"
             "exten => 0190909090910000,n,Hangup()\n"
             "\n"
