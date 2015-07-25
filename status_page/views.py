@@ -22,7 +22,6 @@ def users(request):
     for user in myList:
         if user['point'] == 'ZZZZ' and user['frequency'] == 910000:
             del user['point']
-            user['frequency'] = '910 MHz'
             user['description'] = 'ECHO-TEST'
         else:
             try:
@@ -35,11 +34,10 @@ def users(request):
             except Frequency.DoesNotExist:
                 pass
 
-            else:
-                if user['frequency'] / 1000 >= 1:
-                    user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
-                else:
-                    user['frequency'] = str(user['frequency']) + ' KHz'
+        if user['frequency'] / 1000 >= 1:
+            user['frequency'] = str(user['frequency'] / 1000) + ' MHz'
+        else:
+            user['frequency'] = str(user['frequency']) + ' KHz'
 
     data = json.dumps(myList)
 
